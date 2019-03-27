@@ -7,7 +7,7 @@ class PlacesMock {
         description: 'Lojas Americanas',
         state: 'SP',
         city: 'São Paulo',
-        address: 'R. Silva Bueno 400',
+        address: 'R. Silva Bueno, 400',
         latitude: -23.5963531,
         longitude: -46.6019338,
         image:
@@ -17,10 +17,20 @@ class PlacesMock {
         description: 'Magazine Luiza',
         state: 'SP',
         city: 'São Paulo',
-        address: 'R. Silva Bueno 380',
+        address: 'R. Silva Bueno, 380',
         latitude: -23.5993549,
         longitude: -46.6030992,
         image:
-            'https://digitalks.com.br/wp-content/uploads/2018/12/magazine-luiza-logo-1.png')
+            'https://digitalks.com.br/wp-content/uploads/2018/12/magazine-luiza-logo-1.png'),
+    Place(
+        id: 3,
+        description: 'Casas Bahia',
+        state: 'SP',
+        city: 'São Paulo',
+        address: 'Praça Ramos de Azevedor, 131',
+        latitude: -23.5458473,
+        longitude: -46.6415126,
+        image:
+            'https://iguatemi.com.br/esplanada/sites/esplanada/files/logo-1360189935923.png')
   ];
 }

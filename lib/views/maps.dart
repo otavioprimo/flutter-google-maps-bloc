@@ -2,11 +2,12 @@ import 'dart:async';
 
 import 'package:bloc_pattern/bloc_pattern.dart';
 import 'package:flutter/material.dart';
+import 'package:google_maps/bloc/geolocation_bloc.dart';
 import 'package:google_maps/bloc/map_bloc.dart';
+import 'package:google_maps/models/userLocation.dart';
 import 'package:google_maps/util/colors.dart';
 import 'package:google_maps/widgets/carrousel.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:location/location.dart';
 
 import 'package:google_maps/models/place.dart';
 
@@ -19,15 +20,13 @@ class _MapsState extends State<Maps> with AutomaticKeepAliveClientMixin {
   @override
   bool get wantKeepAlive => true;
 
-  LatLng userCoords;
-
-  _MapsState() {
-    _getUserLocation();
-  }
+  UserLocation userLocation;
 
   @override
   Widget build(BuildContext context) {
     final blocMap = BlocProvider.of<MapBloc>(context);
+    final blocGeo = BlocProvider.of<GeolocationBloc>(context);
+
     final Completer<GoogleMapController> _mapController = Completer();
 
     void _onMapCreated(GoogleMapController controller) {
@@ -46,10 +45,10 @@ class _MapsState extends State<Maps> with AutomaticKeepAliveClientMixin {
       controller.animateCamera(CameraUpdate.newCameraPosition(_newPos));
     }
 
-    Future<void> _moveMapToUser() async {
+    Future<void> _moveToLocation(latitude, longitude) async {
       GoogleMapController controller = await _mapController.future;
       CameraPosition _newPos = CameraPosition(
-        target: LatLng(userCoords.latitude, userCoords.longitude),
+        target: LatLng(latitude, longitude),
         zoom: 14.5,
       );
 
@@ -84,7 +83,6 @@ class _MapsState extends State<Maps> with AutomaticKeepAliveClientMixin {
                       initialData: {},
                       stream: blocMap.outMarkers,
                       builder: (context, snapshotMarkers) {
-                        print(snapshotMarkers.data);
                         if (snapshotPlaces.data.length > 0) {
                           return GoogleMap(
                             onMapCreated: _onMapCreated,
@@ -138,14 +136,26 @@ class _MapsState extends State<Maps> with AutomaticKeepAliveClientMixin {
                     width: 45.0,
                     height: 45.0,
                     child: FittedBox(
-                      child: FloatingActionButton(
-                        materialTapTargetSize: MaterialTapTargetSize.padded,
-                        backgroundColor: Color(0xFF393A51),
-                        child: Icon(
-                          Icons.person_pin_circle,
-                          size: 32.0,
-                        ),
-                        onPressed: _moveMapToUser,
+                      child: StreamBuilder<UserLocation>(
+                        stream: blocGeo.outUserLocation,
+                        builder: (context, snapshot) {
+                          if (snapshot.hasData) {
+                            return FloatingActionButton(
+                                materialTapTargetSize:
+                                    MaterialTapTargetSize.padded,
+                                backgroundColor: Color(0xFF393A51),
+                                child: Icon(
+                                  Icons.person_pin_circle,
+                                  size: 32.0,
+                                ),
+                                onPressed: () {
+                                  _moveToLocation(snapshot.data.latitude,
+                                      snapshot.data.longitude);
+                                });
+                          } else {
+                            return Container();
+                          }
+                        },
                       ),
                     ),
                   ),
@@ -156,17 +166,5 @@ class _MapsState extends State<Maps> with AutomaticKeepAliveClientMixin {
         ),
       ),
     );
-  }
-
-  _getUserLocation() async {
-    try {
-      var location = new Location();
-      location.getLocation().then((coords) {
-        userCoords = LatLng(coords.latitude, coords.longitude);
-        print(userCoords);
-      });
-    } catch (e) {
-      print(e);
-    }
   }
 }
